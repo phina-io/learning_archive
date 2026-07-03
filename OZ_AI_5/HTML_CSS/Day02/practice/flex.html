@@ -1,0 +1,40 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+
+    <style>
+        .container{
+            background-color: orange;
+            height: 200px;
+            
+            /* 그룹화로 묶어서 한번에 관리 가능 */
+            display: flex;
+            gap: 10px;
+            
+            /* 주축 정렬 */
+            justify-content: end;  
+            /* 교차축 정렬 */
+            align-items: center;
+        }
+
+        .item{
+            background-color: skyblue;
+            border: 1px solid black;
+        }
+    </style>
+</head>
+
+<body>
+
+    <div class="container">
+        <!-- .item*3을 사용하면 class가 item 코드 3개를 자동 생성 -->
+        <div class="item">A</div>
+        <div class="item">B</div>
+        <div class="item">C</div>
+    </div>
+
+</body>
+</html>
