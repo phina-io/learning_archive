@@ -1,0 +1,44 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+    <style>
+        body {
+            margin: 0;
+        }
+
+        .container {
+            display: flex;
+        }
+
+        .box {
+            text-align: center;
+            background-color: skyblue;
+            border: 1px solid black;
+            flex: 1px;
+        }
+
+        /* 화면 너비가 300px 보다 작아지면 */
+        @media (max-width: 300px) {
+            .container {
+                flex-direction: column;
+            }
+        }
+        
+    </style>
+</head>
+
+<body>
+
+    <div class="container">
+        <div class="box">이력서</div>
+        <div class="box">포트폴리오</div>
+        <div class="box">사진첩</div>
+    </div>
+
+</body>
+
+
+</html>

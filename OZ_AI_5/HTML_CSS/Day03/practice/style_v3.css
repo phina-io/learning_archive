@@ -1,0 +1,60 @@
+/* . → 클래스 */
+body {
+    margin: 0;
+}
+    .contents{
+        text-align:center;
+
+        display: flex;
+        flex-direction: column;
+
+        min-height: 100vh;
+        gap: 8px;
+        font-family: 'Lucida Sans', 'Lucida Sans Regular', 'Lucida Grande', 'Lucida Sans Unicode', Geneva, Verdana, sans-serif;
+    }
+
+/* # → id */
+    #name{
+        font-size: x-large;
+        font-weight: bold;
+        margin-top: 20px;
+    } 
+
+    .contact {
+        display: flex;
+        gap: 4px;
+        justify-content: center;
+
+        font-size: x-small;
+        margin-top: 8px;
+
+        color: steelblue;
+    }
+
+    #github{
+        color: inherit;
+        /* color:steelblue; */
+        text-decoration: none;
+    }
+    
+    #github:hover{
+        text-decoration: underline;
+    }
+
+    #english{
+        font-size: small;
+        color: darkcyan;
+        
+        position: absolute;
+        top: 10px;
+        right: 10px;
+    }
+    
+    main{
+        font-size:medium;
+        flex: 1;
+    }
+
+    footer{
+        font-size: xx-small;
+    }
