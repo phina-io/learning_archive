@@ -1,0 +1,52 @@
+<!-- 브라우저는 HTML을 읽어서 DOM 객체를 만든다 -->
+<!-- JS를 통해서 DOM을 조작하여 화면을 변경할 수 있다  -->
+
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+</head>
+
+<body>
+    <h3 id="msg" class="hello"></h3>
+    <script>
+        let h1 = document.getElementById("msg")
+        // document.querySelector(".hello")
+
+        // 서버에서 사용자 이름을 불러옴
+        let username = "phina";
+        h1.textContent = `안녕하세요, ${username}님`;
+    </script>
+
+    <hr>
+
+    <!-- document.querySelector("li") 조건의 첫번째만 찾아옴 -->
+    <!-- document.querySelectorAll("li") 한번에 모두 가져오기 -->
+    <!-- document.querySelectorAll("li")[0] 인덱스로 접근 -->
+    <ul>
+        <li>apple</li>
+        <li>banana</li>
+        <li>cherry</li>
+    </ul>
+
+</body>
+
+</html>
+
+<!-- 변수로 할당 후 for문으로 출력
+const list = document.querySelectorAll("li") 
+for (const i of list) {
+        console.log(i.textContent)
+    }
+-->
+
+<!-- 요소 추가하기
+let newItem = document.createElement("li")
+newItem.text
+newItem.textContent = "melon"
+let parent = document.querySelector("ul")
+parent.appendChild(newItem)  
+-->
