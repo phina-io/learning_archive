@@ -1,0 +1,88 @@
+body {
+    margin: 0;
+    background-color: #f4f7f7;
+    font-family: Arial, sans-serif;
+    color: #2c3e50;
+}
+
+.container {
+    width: 90%;
+    max-width: 1000px;
+    margin: 20px auto;
+    padding: 30px;
+    background-color: white;
+    border-radius: 8px;
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+}
+
+h1 {
+    text-align: center;
+}
+
+.tabs {
+    text-align: center;
+    margin: 20px 0;
+}
+
+.tabs button {
+    padding: 12px 22px;
+    border: none;
+    border-radius: 5px;
+    margin: 0 5px;
+    cursor: pointer;
+    font-size: 15px;
+}
+
+.tabs button.active {
+    background-color: #2c3e50;
+    color: white;
+}
+
+#searchInput {
+    display: block;
+    width: 400px;
+    max-width: 90%;
+    margin: 0 auto 20px;
+    padding: 12px;
+    font-size: 16px;
+}
+
+table {
+    width: 100%;
+    border-collapse: collapse;
+}
+
+th {
+    background-color: #f5f6f7;
+    padding: 14px;
+    text-align: left;
+}
+
+td {
+    padding: 14px;
+    border-bottom: 1px solid #eee;
+}
+
+.symbol {
+    font-weight: bold;
+}
+
+.star {
+    cursor: pointer;
+    font-size: 20px;
+    color: #bbb;
+}
+
+.star.active {
+    color: #f1c40f;
+}
+
+.up {
+    color: #e74c3c;
+    font-weight: bold;
+}
+
+.down {
+    color: #3498db;
+    font-weight: bold;
+}
