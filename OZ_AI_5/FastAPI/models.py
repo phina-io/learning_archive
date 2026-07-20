@@ -2,7 +2,7 @@
 from sqlalchemy import Integer, String
 from sqlalchemy.orm import DeclarativeBase, mapped_column, Mapped
 
-# 매핑 관계를 관리하는 클래스
+# 매핑 관계를 관리하는 최상위 클래스
 class Base(DeclarativeBase):
     pass
 
@@ -12,5 +12,9 @@ class User(Base):
     
     id: Mapped[int] = mapped_column(
         Integer, primary_key=True, autoincrement=True)
+    
     name: Mapped[str]= mapped_column(String(16))
     password: Mapped[str] = mapped_column(String(32))
+    
+    def __repr__(self):
+        return f"User(id={self.id}, name={self.name})"

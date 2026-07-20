@@ -1,4 +1,7 @@
 from fastapi import FastAPI, Path, Query
+from sqlalchemy import select
+
+from models import User
 
 app = FastAPI()
 
@@ -41,3 +44,17 @@ def search_item_handler(
 def get_item_handler(
     item_name: str = Path(..., max_length=6)):
     return {"item_name": item_name}
+
+
+# [SQL -> Python]
+# SELECT name FROM user;
+select(User.name)
+
+# SELECT name, password FROM user;
+select(User.name, User.password)
+
+# SELECT * FROM user WHERE id = 1;
+select(User).where(User.id == 1)
+
+# SELECT password FROM user WHERE name != "alex";
+select(User.password).where(User.name !="alex")

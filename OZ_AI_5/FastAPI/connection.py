@@ -5,6 +5,7 @@ from sqlalchemy.orm import sessionmaker
 # sqlite를 사용하는데, 그 위치가 현재 프로젝트의 example.db라는 파일
 DATABASE_URL = "sqlite:///./example.db"
 
+# 데이터베이스 통신을 위한 중간 매개체
 engine = create_engine(DATABASE_URL, echo=True)
 
 # 실제 요청을 보내는 단위
@@ -14,3 +15,12 @@ SessionFactory = sessionmaker(
     autoflush = False,
     expire_on_commit = False
 )
+
+
+# session 관리 의존성 함수
+def get_session():
+    session = SessionFactory()
+    try:
+        yield session
+    finally:
+        session.close()
