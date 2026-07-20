@@ -30,5 +30,8 @@ class UserUpdateRequest(BaseModel):
 class UserResponse(BaseModel):
     id: int
     name: str
-    
-    
+
+
+# 사용자가 LLM에게 요청하는 데이터 형식
+class UserInputRequest(BaseModel):
+    user_input: str
