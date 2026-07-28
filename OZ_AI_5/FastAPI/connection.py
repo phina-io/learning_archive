@@ -16,7 +16,6 @@ SessionFactory = sessionmaker(
     expire_on_commit = False
 )
 
-
 # session 관리 의존성 함수
 def get_session():
     session = SessionFactory()
