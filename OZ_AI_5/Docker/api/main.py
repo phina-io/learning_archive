@@ -40,7 +40,7 @@ async def create_chat_handler(
 
     # 추론 요청 enqueue
     await redis_client.lpush("inference_queue", json.dumps(job))
-
+    
     # 토큰을 N번 반환하는 함수
     async def token_generator():
         async for message in pubsub.listen():
