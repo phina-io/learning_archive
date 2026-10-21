@@ -1,0 +1,307 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>호흡기 진료비 격차</title>
+<style>
+:root{
+  color-scheme:light;
+  --bg:#f5f4f1; --surface:#fcfcfb; --line:#e4e2dc; --grid:#ecebe6;
+  --ink:#0b0b0b; --ink2:#52514e; --ink3:#8a8984;
+  --c1:#2a78d6; --c2:#eb6834; --c3:#1baf7a; --c4:#eda100;
+  --warn:#b45309; --warnbg:#fdf3e1;
+}
+@media (prefers-color-scheme:dark){:root:where(:not([data-theme="light"])){
+  color-scheme:dark; --bg:#121211; --surface:#1a1a19; --line:#2e2e2b; --grid:#262624;
+  --ink:#f0efec; --ink2:#c3c2b7; --ink3:#8d8c85;
+  --c1:#3987e5; --c2:#d95926; --c3:#199e70; --c4:#c98500; --warn:#f0b05a; --warnbg:#2b2214;
+}}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font:14px/1.55 system-ui,"Apple SD Gothic Neo","Malgun Gothic",sans-serif}
+.wrap{max-width:1180px;margin:0 auto;padding:20px 16px 48px}
+h1{font-size:20px;margin:0 0 2px;font-weight:650}
+.sub{color:var(--ink2);margin:0 0 14px;font-size:13px}
+.filters{position:sticky;top:0;z-index:5;background:var(--bg);padding:10px 0;border-bottom:1px solid var(--line);display:flex;flex-wrap:wrap;gap:8px 14px;align-items:center}
+.filters label{font-size:12px;color:var(--ink2);display:flex;flex-direction:column;gap:2px}
+select{font:inherit;padding:5px 8px;border:1px solid var(--line);border-radius:6px;background:var(--surface);color:var(--ink)}
+.seg{display:inline-flex;border:1px solid var(--line);border-radius:6px;overflow:hidden}
+.seg button{font:inherit;border:0;background:var(--surface);color:var(--ink2);padding:5px 12px;cursor:pointer}
+.seg button[aria-pressed=true]{background:var(--c1);color:#fff}
+.tabs{display:flex;gap:4px;margin:14px 0 12px;border-bottom:1px solid var(--line)}
+.tabs button{font:inherit;border:0;background:none;padding:9px 14px;color:var(--ink2);cursor:pointer;border-bottom:2px solid transparent;margin-bottom:-1px}
+.tabs button[aria-selected=true]{color:var(--ink);border-bottom-color:var(--c1);font-weight:600}
+.kpis{display:grid;grid-template-columns:repeat(auto-fit,minmax(170px,1fr));gap:10px;margin-bottom:14px}
+.kpi,.card{background:var(--surface);border:1px solid var(--line);border-radius:10px;padding:12px 14px}
+.kpi .l{font-size:12px;color:var(--ink2)} .kpi .v{font-size:22px;font-weight:650;margin-top:2px} .kpi .s{font-size:12px;color:var(--ink3)}
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+@media(max-width:860px){.grid2{grid-template-columns:1fr}}
+.card{margin-bottom:12px;overflow-x:auto}
+.card h3{margin:0 0 2px;font-size:15px} .card p.d{margin:0 0 10px;color:var(--ink2);font-size:12.5px}
+table{border-collapse:separate;border-spacing:2px;width:100%;font-variant-numeric:tabular-nums}
+th{font-size:12px;font-weight:500;color:var(--ink2);text-align:center;padding:4px 6px} th.r{text-align:left;white-space:nowrap}
+td.h{text-align:center;padding:9px 6px;border-radius:4px;min-width:84px;position:relative}
+td.h small{display:block;font-size:11px;opacity:.75}
+td.low{background:repeating-linear-gradient(135deg,transparent 0 5px,var(--grid) 5px 7px)!important;color:var(--ink3)!important}
+td.t,th.t{text-align:right;padding:5px 8px;white-space:nowrap} td.l{text-align:left;padding:5px 8px}
+tr.row:hover td{background:var(--grid)}
+.bar{height:10px;border-radius:0 4px 4px 0;background:var(--c1);min-width:2px}
+.barcell{width:36%} .legend{display:flex;gap:14px;flex-wrap:wrap;font-size:12px;color:var(--ink2);margin:4px 0 8px}
+.legend i{display:inline-block;width:10px;height:10px;border-radius:2px;margin-right:5px;vertical-align:-1px}
+.stack{display:flex;height:22px;gap:2px;flex:1} .stack div{border-radius:3px;min-width:0}
+.srow{display:flex;align-items:center;gap:10px;margin:5px 0} .srow .n{width:92px;font-size:12px;color:var(--ink2);flex:none}
+.note{background:var(--warnbg);color:var(--warn);border-radius:8px;padding:8px 12px;font-size:12.5px;margin-bottom:12px}
+.muted{color:var(--ink3)} svg text{fill:var(--ink2);font-size:11px}
+#tip{position:fixed;pointer-events:none;z-index:20;background:var(--ink);color:var(--surface);padding:6px 9px;border-radius:6px;font-size:12px;white-space:pre-line;display:none;max-width:260px}
+.out{color:var(--warn);font-weight:600}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <h1>호흡기 질환 진료비 격차 대시보드</h1>
+  <p class="sub">보험료 5분위·기관 종별·지역별 호흡기(J코드) 진료비 비교 · 2024–2025 청구 표본 · 식약처 보건의료분석용</p>
+  <div class="filters" id="filters"></div>
+  <div class="tabs" role="tablist" id="tabs"></div>
+  <div id="view"></div>
+  <p class="muted" style="margin-top:20px;font-size:12px">원본 표본 3,000명 규모의 실습 데이터라 전국 통계로 해석할 수 없습니다. 소득층은 보험료 5분위로 대신하며, 5분위가 없는 의료급여는 별도 열입니다. 연령은 청구연도 − 출생연도입니다. 표본 30건 미만 칸은 빗금(표본 부족)으로 표시합니다.</p>
+</div>
+<div id="tip"></div>
+<script>
+const D=/*__DATA__*/null;
+const C={year:0,month:1,age:2,dept:3,form:4,cl:5,reg:6,sido:7,q:8,sub:9,sick:10,tot:11,slf:12,ins:13,rx:14,hasrx:15,days:16};
+const S={year:'all',age:'all',dept:'all',form:'0',metric:'med',tab:'gap'};
+const AGE=['영유아 0–6세','아동 7–18세','성인 19–64세','노인 65세+'];
+const QN=['의료급여','1분위(하위)','2분위','3분위','4분위','5분위(상위)'];
+const QORD=[1,2,3,4,5,0];
+const CLC=['var(--c1)','var(--c2)','var(--c3)','var(--c4)'];
+const GRP={'141':'항히스타민제','222':'진해거담제','618':'항생제','114':'해열진통제'};
+const MIN_N=30;
+const sickName=Object.fromEntries(D.sick);
+const $=s=>document.querySelector(s);
+const esc=s=>String(s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+const won=n=>isFinite(n)?Math.round(n).toLocaleString('ko-KR')+'원':'–';
+const num=n=>Math.round(n).toLocaleString('ko-KR');
+const pct=n=>(n*100).toFixed(1)+'%';
+const ratio=(a,b)=>(a&&b)?(a/b).toFixed(2)+'배':'–';
+
+/* ---------- 통계 ---------- */
+function quant(s,p){if(!s.length)return NaN;const h=(s.length-1)*p,l=Math.floor(h);return s[l]+(s[Math.min(l+1,s.length-1)]-s[l])*(h-l)}
+function stats(v){
+  if(!v.length)return {n:0,med:NaN,avg:NaN,q1:NaN,q3:NaN,s:[]};
+  const s=[...v].sort((a,b)=>a-b);
+  return {n:s.length,med:quant(s,.5),avg:s.reduce((a,b)=>a+b,0)/s.length,q1:quant(s,.25),q3:quant(s,.75),s};
+}
+const mv=st=>S.metric==='med'?st.med:st.avg;
+const mname=()=>S.metric==='med'?'중앙값':'평균';
+function group(idx,key){const m=new Map();for(const i of idx){const k=key(D.rows[i]);(m.get(k)||m.set(k,[]).get(k)).push(i)}return m}
+const tots=(idx,c=C.tot)=>idx.map(i=>D.rows[i][c]);
+
+/* ---------- 필터 ---------- */
+function filtered(){
+  const out=[];
+  for(let i=0;i<D.rows.length;i++){const r=D.rows[i];
+    if(S.year!=='all'&&r[C.year]!=S.year)continue;
+    if(S.age!=='all'&&r[C.age]!=S.age)continue;
+    if(S.dept!=='all'&&r[C.dept]!=S.dept)continue;
+    if(S.form!=='all'&&r[C.form]!=S.form)continue;
+    out.push(i)}
+  return out;
+}
+function drawFilters(){
+  const sel=(id,label,opts)=>`<label>${label}<select id="f_${id}">${opts.map(([v,t])=>`<option value="${v}" ${String(S[id])===String(v)?'selected':''}>${esc(t)}</option>`).join('')}</select></label>`;
+  $('#filters').innerHTML=
+    sel('year','연도',[['all','전체 (2024–2025)'],[2024,'2024'],[2025,'2025']])+
+    sel('age','연령대',[['all','전체'],...AGE.map((t,i)=>[i,t])])+
+    sel('dept','진료과',[['all','전체'],...D.dept.map((t,i)=>[i,t])])+
+    sel('form','진료형태',[['0','외래 (기본)'],['1','입원'],['all','외래+입원']])+
+    `<label>지표<span class="seg"><button aria-pressed="${S.metric==='med'}" data-m="med">중앙값</button><button aria-pressed="${S.metric==='avg'}" data-m="avg">평균</button></span></label>`;
+  document.querySelectorAll('#filters select').forEach(e=>e.onchange=()=>{S[e.id.slice(2)]=e.value;render()});
+  document.querySelectorAll('#filters [data-m]').forEach(b=>b.onclick=()=>{S.metric=b.dataset.m;drawFilters();render()});
+}
+const TABS=[['gap','① 격차'],['dis','② 질환'],['reg','③ 지역'],['rx','④ 처방']];
+function drawTabs(){
+  $('#tabs').innerHTML=TABS.map(([k,t])=>`<button role="tab" aria-selected="${S.tab===k}" data-t="${k}">${t}</button>`).join('');
+  document.querySelectorAll('#tabs button').forEach(b=>b.onclick=()=>{S.tab=b.dataset.t;drawTabs();render()});
+}
+
+/* ---------- 공용 컴포넌트 ---------- */
+const kpi=(l,v,s='')=>`<div class="kpi"><div class="l">${l}</div><div class="v">${v}</div><div class="s">${s}</div></div>`;
+function heat(rowLabels,colLabels,cell,fmt=won){
+  // cell(r,c) → {n, v}
+  const cells=rowLabels.map((_,r)=>colLabels.map((_,c)=>cell(r,c)));
+  const vs=cells.flat().filter(x=>x.n>=MIN_N&&isFinite(x.v)).map(x=>x.v);
+  const lo=Math.min(...vs),hi=Math.max(...vs);
+  const body=cells.map((row,r)=>`<tr><th class="r">${esc(rowLabels[r])}</th>${row.map((x,c)=>{
+    if(!x.n)return `<td class="h low" data-tip="${esc(rowLabels[r]+' × '+colLabels[c])}\n청구 없음">–</td>`;
+    const tip=esc(`${rowLabels[r]} × ${colLabels[c]}\n${x.label||mname()} ${fmt(x.v)}\n청구 ${num(x.n)}건`+(x.n<MIN_N?'\n(표본 부족)':''));
+    if(x.n<MIN_N)return `<td class="h low" data-tip="${tip}">${fmt(x.v)}<small>n=${x.n}</small></td>`;
+    const t=hi>lo?(x.v-lo)/(hi-lo):.5;
+    return `<td class="h" style="background:color-mix(in srgb,var(--c1) ${8+77*t}%,var(--surface));color:${t>.55?'#fff':'var(--ink)'}" data-tip="${tip}">${fmt(x.v)}<small>n=${num(x.n)}</small></td>`}).join('')}</tr>`).join('');
+  return `<table><tr><th></th>${colLabels.map(l=>`<th>${esc(l)}</th>`).join('')}</tr>${body}</table>`;
+}
+function hbarTable(heads,rows,maxv,barIdx){
+  // rows: arrays of cell strings; row.bar = value for the bar
+  return `<table><tr>${heads.map((h,i)=>`<th class="${i?'t':'r'}">${h}</th>`).join('')}<th></th></tr>${rows.map(r=>`<tr class="row" data-tip="${esc(r.tip||'')}">${r.cells.map((c,i)=>`<td class="${i?'t':'l'}">${c}</td>`).join('')}<td class="barcell"><div class="bar" style="width:${maxv?Math.max(1,r.bar/maxv*100):0}%;background:${r.color||'var(--c1)'}"></div></td></tr>`).join('')}</table>`;
+}
+function lineChart(pts,fmt,label){
+  const W=720,H=210,L=52,R=12,T=10,B=26;
+  const ys=pts.map(p=>p.y).filter(isFinite);
+  const max=Math.max(...ys)*1.1||1, min=0;
+  const x=i=>L+(W-L-R)*i/(pts.length-1), y=v=>T+(H-T-B)*(1-(v-min)/(max-min));
+  const ticks=[0,.25,.5,.75,1].map(t=>max*t);
+  const path=pts.map((p,i)=>isFinite(p.y)?`${i&&isFinite(pts[i-1].y)?'L':'M'}${x(i).toFixed(1)},${y(p.y).toFixed(1)}`:'').join('');
+  const xl=pts.map((p,i)=>i%3===0?`<text x="${x(i)}" y="${H-8}" text-anchor="middle">${p.x}</text>`:'').join('');
+  return `<svg viewBox="0 0 ${W} ${H}" width="100%" role="img" aria-label="${esc(label)}" class="lc">
+    ${ticks.map(t=>`<line x1="${L}" x2="${W-R}" y1="${y(t)}" y2="${y(t)}" stroke="var(--grid)"/><text x="${L-6}" y="${y(t)+4}" text-anchor="end">${fmt(t)}</text>`).join('')}
+    ${xl}<path d="${path}" fill="none" stroke="var(--c1)" stroke-width="2"/>
+    ${pts.map((p,i)=>isFinite(p.y)?`<circle cx="${x(i)}" cy="${y(p.y)}" r="3" fill="var(--c1)" stroke="var(--surface)" stroke-width="2" data-tip="${esc(p.x+'\n'+label+' '+fmt(p.y)+(p.n!=null?'\n청구 '+num(p.n)+'건':''))}"/><circle cx="${x(i)}" cy="${y(p.y)}" r="11" fill="transparent" data-tip="${esc(p.x+'\n'+label+' '+fmt(p.y)+(p.n!=null?'\n청구 '+num(p.n)+'건':''))}"/>`:'').join('')}
+  </svg>`;
+}
+function boxplot(groups,axisMax,fence){
+  // groups: [{label,color,st,out:[values]}]
+  const W=720,rowH=46,L=86,R=16,T=8,B=28,H=T+rowH*groups.length+B;
+  const x=v=>L+(W-L-R)*Math.min(v,axisMax)/axisMax;
+  const raw=axisMax/5, mag=Math.pow(10,Math.floor(Math.log10(raw))), step=[1,2,5,10].map(k=>k*mag).find(v=>v>=raw), ticks=[];for(let t=0;t<=axisMax;t+=step)ticks.push(t);
+  let g='';
+  groups.forEach((G,i)=>{
+    const cy=T+rowH*i+rowH/2, st=G.st;
+    if(!st.n){g+=`<text x="${L-8}" y="${cy+4}" text-anchor="end">${esc(G.label)}</text><text x="${L+6}" y="${cy+4}" class="muted">청구 없음</text>`;return}
+    const inl=st.s.filter(v=>v<=fence), wlo=inl.length?inl[0]:st.s[0], whi=inl.length?inl[inl.length-1]:st.s[0];
+    const tip=esc(`${G.label}\n청구 ${num(st.n)}건\n중앙값 ${won(st.med)} · 평균 ${won(st.avg)}\n사분위 ${won(st.q1)} ~ ${won(st.q3)}\n이상치 ${num(G.out.length)}건`);
+    g+=`<text x="${L-8}" y="${cy+4}" text-anchor="end">${esc(G.label)}</text>
+      <line x1="${x(wlo)}" x2="${x(whi)}" y1="${cy}" y2="${cy}" stroke="var(--ink3)" stroke-width="1.5"/>
+      <rect x="${x(st.q1)}" y="${cy-11}" width="${Math.max(2,x(st.q3)-x(st.q1))}" height="22" rx="3" fill="${G.color}" fill-opacity=".35" stroke="${G.color}" stroke-width="1.5" data-tip="${tip}"/>
+      <line x1="${x(st.med)}" x2="${x(st.med)}" y1="${cy-11}" y2="${cy+11}" stroke="${G.color}" stroke-width="3"/>`;
+    const show=G.out.length>120?G.out.filter((_,k)=>k%Math.ceil(G.out.length/120)===0):G.out;
+    show.forEach((v,k)=>{if(v<=axisMax)g+=`<circle cx="${x(v)}" cy="${cy+((k*37)%100/100-.5)*18}" r="2.4" fill="${G.color}" fill-opacity=".55" data-tip="${esc(G.label+'\n이상치 '+won(v))}"/>`});
+    const cut=G.out.filter(v=>v>axisMax).length;
+    if(cut)g+=`<text x="${W-R}" y="${cy-14}" text-anchor="end">▸ 축 범위 밖 ${cut}건</text>`;
+  });
+  return `<svg viewBox="0 0 ${W} ${H}" width="100%" role="img" aria-label="종별 진료비 분포 상자그림">
+    ${ticks.map(t=>`<line x1="${x(t)}" x2="${x(t)}" y1="${T}" y2="${H-B}" stroke="var(--grid)"/><text x="${x(t)}" y="${H-10}" text-anchor="middle">${+(t/10000).toFixed(1)}만</text>`).join('')}
+    <line x1="${x(fence)}" x2="${x(fence)}" y1="${T}" y2="${H-B}" stroke="var(--warn)" stroke-dasharray="4 3"/>
+    <text x="${x(fence)+4}" y="${T+10}" style="fill:var(--warn)">이상치 기준 ${won(fence)}</text>${g}</svg>`;
+}
+const legendCl=()=>`<div class="legend">${D.cl.map((n,i)=>`<span><i style="background:${CLC[i]}"></i>${esc(n)}</span>`).join('')}</div>`;
+function noData(){return `<div class="note">현재 필터 조건에 맞는 청구가 없습니다. 필터를 완화해 주세요.</div>`}
+
+/* ---------- ① 격차 ---------- */
+function viewGap(F){
+  const all=stats(tots(F)), fence=all.q3+1.5*(all.q3-all.q1);
+  const byCl=D.cl.map((_,i)=>stats(tots(F.filter(k=>D.rows[k][C.cl]===i))));
+  const byQ=QORD.map(q=>stats(tots(F.filter(k=>D.rows[k][C.q]===q))));
+  const outs=F.filter(i=>D.rows[i][C.tot]>fence);
+  const clGap=(byCl[0].n>=MIN_N&&byCl[3].n>=MIN_N)?ratio(mv(byCl[0]),mv(byCl[3])):'–';
+  const qGap=(byQ[4].n>=MIN_N&&byQ[0].n>=MIN_N)?ratio(mv(byQ[4]),mv(byQ[0])):'–';
+  const heatHTML=heat([...D.cl,'전체'],[...QORD.map(q=>QN[q]),'전체'],(r,c)=>{
+    const idx=F.filter(i=>{const w=D.rows[i];return (r===4||w[C.cl]===r)&&(c===6||w[C.q]===QORD[c])});
+    const st=stats(tots(idx));return {n:st.n,v:mv(st)};
+  });
+  // 종별 이용 비율
+  const useRows=QORD.map(q=>{const idx=F.filter(i=>D.rows[i][C.q]===q);const n=idx.length;
+    const cnt=D.cl.map((_,k)=>idx.filter(i=>D.rows[i][C.cl]===k).length);
+    return `<div class="srow"><div class="n">${QN[q]}<br><span class="muted">${num(n)}건</span></div><div class="stack">${cnt.map((c,k)=>c?`<div style="flex:${c};background:${CLC[k]}" data-tip="${esc(`${QN[q]} · ${D.cl[k]}\n${num(c)}건 (${pct(c/n)})`)}"></div>`:'').join('')}</div></div>`}).join('');
+  const groups=D.cl.map((n,i)=>({label:n,color:CLC[i],st:byCl[i],out:F.filter(k=>D.rows[k][C.cl]===i&&D.rows[k][C.tot]>fence).map(k=>D.rows[k][C.tot])}));
+  const axisMax=Math.ceil(Math.min(all.s[all.n-1],quant(all.s,.995)*1.1)/10000)*10000||10000;
+  const top=[...outs].sort((a,b)=>D.rows[b][C.tot]-D.rows[a][C.tot]).slice(0,10);
+  const topRows=top.map(i=>{const r=D.rows[i];return `<tr class="row"><td class="l">${esc(D.cl[r[C.cl]])}</td><td class="l">${QN[r[C.q]]}</td><td class="l">${esc(D.dept[r[C.dept]])}</td><td class="l">${esc(D.sick[r[C.sick]][0])} ${esc(D.sick[r[C.sick]][1].slice(0,18))}</td><td class="t">${num(r[C.days])}일</td><td class="t out">${won(r[C.tot])}</td></tr>`}).join('');
+  return `
+  <div class="kpis">
+    ${kpi('호흡기 청구',num(F.length)+'건',`전체 청구의 ${pct(F.length/D.total_claims)} · 현재 필터 기준`)}
+    ${kpi('진료비 '+mname(),won(mv(all)),`평균 ${won(all.avg)} · 중앙값 ${won(all.med)}`)}
+    ${kpi('종별 격차','상급종합 / 의원 '+clGap,mname()+' 비교')}
+    ${kpi('소득 격차','5분위 / 1분위 '+qGap,mname()+' 비교')}
+    ${kpi('이상치 청구',num(outs.length)+'건',`${pct(outs.length/F.length)} · 기준 ${won(fence)} 초과`)}
+  </div>
+  <div class="card"><h3>종별 × 소득층 진료비 (${mname()})</h3>
+    <p class="d">행은 기관 종별, 열은 보험료 5분위. 진할수록 비쌉니다. 빗금은 청구 ${MIN_N}건 미만. 가로(소득층)보다 세로(종별) 방향의 색 차이가 크면 격차의 중심은 종별 이용입니다.</p>${heatHTML}</div>
+  <div>
+    <div class="card"><h3>소득층별 이용 기관 종별 비율</h3><p class="d">같은 호흡기 질환으로 어느 종별 기관을 이용했는지, 청구 건수 기준입니다.</p>${legendCl()}${useRows}</div>
+    <div class="card"><h3>종별 진료비 분포</h3><p class="d">상자는 25–75%, 굵은 선은 중앙값, 점은 이상치입니다.</p>${boxplot(groups,axisMax,fence)}</div>
+  </div>
+  <div class="card"><h3>이상치 청구 상위 10건</h3><p class="d">현재 필터에서 총진료비가 Q3 + 1.5 × IQR(${won(fence)})을 넘는 청구입니다. 지표에서 제외하지 않고 그대로 포함했습니다.</p>
+    <table><tr><th class="r">종별</th><th class="r">소득층</th><th class="r">진료과</th><th class="r">주상병</th><th class="t">요양일수</th><th class="t">총진료비</th></tr>${topRows||'<tr><td class="l muted" colspan="6">이상치 없음</td></tr>'}</table></div>`;
+}
+
+/* ---------- ② 질환 ---------- */
+function viewDis(F){
+  const subRows=D.sub.map((n,i)=>{const idx=F.filter(k=>D.rows[k][C.sub]===i),st=stats(tots(idx));return {n,idx,st}}).filter(x=>x.idx.length);
+  const maxN=Math.max(...subRows.map(x=>x.idx.length));
+  const subTbl=hbarTable(['소분류','청구 건수',mname()],subRows.map(x=>({cells:[esc(x.n),num(x.idx.length),won(mv(x.st))],bar:x.idx.length,tip:`${x.n}\n${num(x.idx.length)}건 · ${mname()} ${won(mv(x.st))}\n사분위 ${won(x.st.q1)} ~ ${won(x.st.q3)}`})),maxN);
+  const bySick=[...group(F,r=>r[C.sick])].map(([k,idx])=>({k,idx,st:stats(tots(idx))})).sort((a,b)=>b.idx.length-a.idx.length).slice(0,10);
+  const sickTbl=hbarTable(['상병','청구 건수',mname()],bySick.map(x=>({cells:[`${esc(D.sick[x.k][0])} <span class="muted">${esc(D.sick[x.k][1].slice(0,16))}</span>`,num(x.idx.length),won(mv(x.st))],bar:x.idx.length,tip:`${D.sick[x.k][0]} ${D.sick[x.k][1]}\n${num(x.idx.length)}건 · ${mname()} ${won(mv(x.st))}`})),bySick[0]?.idx.length||1);
+  const mon=[...Array(24)].map((_,m)=>{const idx=F.filter(i=>D.rows[i][C.month]===m);const st=stats(tots(idx));
+    return {x:`${2024+(m/12|0)}.${String(m%12+1).padStart(2,'0')}`,n:idx.length,cnt:idx.length,y:mv(st),st}});
+  return `
+  <div class="grid2">
+    <div class="card"><h3>호흡기 소분류별 청구</h3><p class="d">막대 길이는 청구 건수입니다.</p>${subTbl}</div>
+    <div class="card"><h3>주상병 TOP 10</h3><p class="d">상병 한글명은 sick_master 기준입니다.</p>${sickTbl}</div>
+  </div>
+  <div class="grid2">
+    <div class="card"><h3>월별 청구 건수</h3><p class="d">호흡기 질환의 계절성을 확인합니다.</p>${lineChart(mon.map(m=>({x:m.x,y:m.cnt,n:m.cnt})),num,'청구 건수')}</div>
+    <div class="card"><h3>월별 진료비 ${mname()}</h3><p class="d">월별 건수가 적은 달은 흔들릴 수 있습니다.</p>${lineChart(mon.map(m=>({x:m.x,y:m.y,n:m.n})),won,'진료비 '+mname())}</div>
+  </div>`;
+}
+
+/* ---------- ③ 지역 ---------- */
+function viewReg(F){
+  const regIds=Object.keys(D.region).map(Number);
+  const regRows=regIds.map(r=>{const idx=F.filter(i=>D.rows[i][C.reg]===r);return {r,idx,st:stats(tots(idx))}}).filter(x=>x.idx.length);
+  const maxV=Math.max(...regRows.map(x=>mv(x.st)));
+  const regTbl=hbarTable(['권역(기관 소재)','청구 건수',mname()],regRows.map(x=>({cells:[esc(D.region[x.r]),num(x.idx.length),won(mv(x.st))],bar:mv(x.st),tip:`${D.region[x.r]}\n${num(x.idx.length)}건 · ${mname()} ${won(mv(x.st))}`})),maxV);
+  const heatHTML=heat(D.cl,regIds.map(r=>D.region[r]),(r,c)=>{
+    const st=stats(tots(F.filter(i=>D.rows[i][C.cl]===r&&D.rows[i][C.reg]===regIds[c])));return {n:st.n,v:mv(st)}});
+  const sidoRows=D.sido.map((n,s)=>{const idx=F.filter(i=>D.rows[i][C.sido]===s);return {n,s,idx,st:stats(tots(idx))}}).filter(x=>x.idx.length).sort((a,b)=>mv(b.st)-mv(a.st));
+  const maxS=Math.max(...sidoRows.map(x=>mv(x.st)));
+  const sidoTbl=hbarTable(['시도(환자 거주)','청구 건수',mname()],sidoRows.map(x=>({cells:[esc(x.n)+(x.idx.length<MIN_N?' <span class="muted">(표본 부족)</span>':''),num(x.idx.length),won(mv(x.st))],bar:mv(x.st),color:x.idx.length<MIN_N?'var(--ink3)':'var(--c1)',tip:`${x.n}\n${num(x.idx.length)}건 · ${mname()} ${won(mv(x.st))}`})),maxS);
+  return `
+  <div class="grid2">
+    <div class="card"><h3>권역별 진료비 (${mname()})</h3><p class="d">기관이 있는 권역 기준입니다.</p>${regTbl}</div>
+    <div class="card"><h3>종별 × 권역 (${mname()})</h3><p class="d">같은 종별 안에서 지역 차이가 있는지 봅니다.</p>${heatHTML}</div>
+  </div>
+  <div class="card"><h3>시도별 진료비 (${mname()}, 환자 거주지)</h3><p class="d">환자 거주 시도 기준입니다. 청구 30건 미만은 회색으로 표시합니다.</p>${sidoTbl}</div>`;
+}
+
+/* ---------- ④ 처방 ---------- */
+function viewRx(F){
+  const set=new Set(F), withRx=F.filter(i=>D.rows[i][C.hasrx]);
+  const rxv=stats(withRx.map(i=>D.rows[i][C.rx]));
+  const sumRx=withRx.reduce((a,i)=>a+D.rows[i][C.rx],0), sumTot=F.reduce((a,i)=>a+D.rows[i][C.tot],0);
+  const ing=new Map();
+  for(const [ci,g,amt] of D.rx){if(!set.has(ci))continue;const o=ing.get(g)||{n:0,amt:0,claims:0};o.n++;o.amt+=amt;ing.set(g,o)}
+  const ingRows=[...ing].map(([g,o])=>({g,...o})).sort((a,b)=>b.amt-a.amt).slice(0,10);
+  const maxA=ingRows[0]?.amt||1;
+  const ingTbl=hbarTable(['주성분','약효군','처방 줄수','약제비 합계'],ingRows.map(o=>({cells:[esc(D.gnl[o.g][1]),esc(GRP[D.gnl[o.g][2]]||D.gnl[o.g][2]),num(o.n),won(o.amt)],bar:o.amt,tip:`${D.gnl[o.g][1]}\n처방 ${num(o.n)}줄 · 약제비 ${won(o.amt)}`})),maxA);
+  const heatRx=heat(D.cl,QORD.map(q=>QN[q]),(r,c)=>{
+    const st=stats(withRx.filter(i=>D.rows[i][C.cl]===r&&D.rows[i][C.q]===QORD[c]).map(i=>D.rows[i][C.rx]));return {n:st.n,v:mv(st),label:'약제비 '+mname()}});
+  const share=D.cl.map((n,k)=>{const idx=F.filter(i=>D.rows[i][C.cl]===k);const w=idx.filter(i=>D.rows[i][C.hasrx]);return {n,c:idx.length,w:w.length}});
+  const shareHTML=share.map((s,k)=>`<div class="srow"><div class="n">${esc(s.n)}<br><span class="muted">${num(s.c)}건</span></div><div class="stack" style="background:var(--grid);border-radius:3px" data-tip="${esc(`${s.n}\n처방 포함 ${num(s.w)} / ${num(s.c)}건 (${s.c?pct(s.w/s.c):'–'})`)}"><div style="width:${s.c?s.w/s.c*100:0}%;background:${CLC[k]}"></div></div><div style="width:48px;text-align:right">${s.c?pct(s.w/s.c):'–'}</div></div>`).join('');
+  return `
+  <div class="kpis">
+    ${kpi('처방 포함 청구',pct(withRx.length/(F.length||1)),`${num(withRx.length)}건`)}
+    ${kpi('청구당 약제비 '+mname(),won(mv(rxv)),'처방이 있는 청구 기준')}
+    ${kpi('약제비 합계',won(sumRx),'처방 금액 합')}
+    ${kpi('진료비 대비 약제비',pct(sumRx/(sumTot||1)),'합계 기준')}
+  </div>
+  <div class="grid2">
+    <div class="card"><h3>주성분 TOP (약제비 합계)</h3><p class="d">호흡기 청구에 붙은 처방 성분입니다. 약효군은 약효분류번호에서 변환했습니다.</p>${ingTbl}</div>
+    <div class="card"><h3>종별 처방 포함 비율</h3><p class="d">청구 중 원외처방이 붙은 비율입니다.</p>${shareHTML}</div>
+  </div>
+  <div class="card"><h3>종별 × 소득층 청구당 약제비 (${mname()})</h3><p class="d">처방이 있는 청구만 비교합니다.</p>${heatRx}</div>`;
+}
+
+function render(){
+  const F=filtered();
+  $('#view').innerHTML=F.length?({gap:viewGap,dis:viewDis,reg:viewReg,rx:viewRx}[S.tab])(F):noData();
+}
+
+/* ---------- 툴팁 ---------- */
+const tip=$('#tip');
+document.addEventListener('mouseover',e=>{const t=e.target.closest('[data-tip]');if(!t){tip.style.display='none';return}tip.textContent=t.dataset.tip;tip.style.display='block'});
+document.addEventListener('mousemove',e=>{if(tip.style.display==='none')return;const w=tip.offsetWidth;tip.style.left=Math.min(e.clientX+14,innerWidth-w-8)+'px';tip.style.top=(e.clientY+16)+'px'});
+document.addEventListener('mouseout',e=>{if(!e.relatedTarget||!e.relatedTarget.closest||!e.relatedTarget.closest('[data-tip]'))tip.style.display='none'});
+
+drawFilters();drawTabs();render();
+</script>
+</body>
+</html>
